@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Period Tracker Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at 20% 10%, #6d28d9 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 90%, #4c1d95 0%, transparent 50%),
+                linear-gradient(160deg, #2d1b69, #1a0f3c);
+    padding: 40px 20px;
+  }
+</style>
+</head>
+<body>
+  <!-- Mount point — the script targets this element automatically -->
+  <div id="period-tracker"></div>
+
+  <script src="period-tracker.js"></script>
+</body>
+</html>

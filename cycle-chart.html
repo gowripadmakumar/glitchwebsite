@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cycle Length Chart</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@300;400&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0f;
+      --surface: #16161a;
+      --border: #2a2a32;
+      --accent: #c9f564;
+      --accent2: #7c6aff;
+      --text: #e8e8ec;
+      --muted: #6b6b7a;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 780px;
+      box-shadow: 0 0 60px rgba(124, 106, 255, 0.08);
+    }
+
+    .header {
+      margin-bottom: 2rem;
+    }
+
+    .label {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.9rem;
+      font-weight: 400;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    h1 span {
+      color: var(--accent);
+    }
+
+    .stats {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .stat-val {
+      font-size: 1.4rem;
+      color: var(--accent);
+      letter-spacing: -0.03em;
+    }
+
+    .stat-lbl {
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 300px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <p class="label">Health Tracker</p>
+      <h1>Cycle <span>Lengths</span></h1>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-val" id="avgVal">—</span>
+        <span class="stat-lbl">Avg Days</span>
+      </div>
+      <div class="stat">
+        <span class="stat-val" id="minVal">—</span>
+        <span class="stat-lbl">Shortest</span>
+      </div>
+      <div class="stat">
+        <span class="stat-val" id="maxVal">—</span>
+        <span class="stat-lbl">Longest</span>
+      </div>
+      <div class="stat">
+        <span class="stat-val" id="countVal">—</span>
+        <span class="stat-lbl">Cycles</span>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <canvas id="cycleChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    // ── Edit your cycle lengths here ──────────────────────────────
+    const cycleLengths = [28, 30, 27, 29, 31, 28, 26, 30, 29, 28, 32, 27];
+    // ─────────────────────────────────────────────────────────────
+
+    // Compute stats
+    const avg = (cycleLengths.reduce((a, b) => a + b, 0) / cycleLengths.length).toFixed(1);
+    const min = Math.min(...cycleLengths);
+    const max = Math.max(...cycleLengths);
+
+    document.getElementById('avgVal').textContent = avg;
+    document.getElementById('minVal').textContent = min;
+    document.getElementById('maxVal').textContent = max;
+    document.getElementById('countVal').textContent = cycleLengths.length;
+
+    // Labels
+    const labels = cycleLengths.map((_, i) => `Cycle ${i + 1}`);
+
+    // Chart
+    const ctx = document.getElementById('cycleChart').getContext('2d');
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(201, 245, 100, 0.18)');
+    gradient.addColorStop(1, 'rgba(201, 245, 100, 0)');
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Cycle Length (days)',
+          data: cycleLengths,
+          borderColor: '#c9f564',
+          backgroundColor: gradient,
+          borderWidth: 2,
+          pointBackgroundColor: '#c9f564',
+          pointBorderColor: '#0d0d0f',
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          fill: true,
+          tension: 0.4,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#16161a',
+            borderColor: '#2a2a32',
+            borderWidth: 1,
+            titleColor: '#6b6b7a',
+            bodyColor: '#c9f564',
+            titleFont: { family: 'DM Mono', size: 10 },
+            bodyFont: { family: 'DM Mono', size: 14 },
+            padding: 12,
+            callbacks: {
+              label: ctx => `${ctx.parsed.y} days`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: '#1e1e24' },
+            ticks: {
+              color: '#6b6b7a',
+              font: { family: 'DM Mono', size: 10 },
+            },
+            border: { color: '#2a2a32' }
+          },
+          y: {
+            grid: { color: '#1e1e24' },
+            ticks: {
+              color: '#6b6b7a',
+              font: { family: 'DM Mono', size: 10 },
+              callback: v => `${v}d`
+            },
+            border: { color: '#2a2a32' },
+            suggestedMin: Math.min(...cycleLengths) - 3,
+            suggestedMax: Math.max(...cycleLengths) + 3,
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

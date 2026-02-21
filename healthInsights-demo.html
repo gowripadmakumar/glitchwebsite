@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Health Insights Demo — Bloom</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse 70% 60% at 15% 0%,   #6d28d9 0%, transparent 55%),
+      radial-gradient(ellipse 60% 70% at 85% 100%, #4c1d95 0%, transparent 55%),
+      linear-gradient(160deg, #2d1b69 0%, #1a0f3c 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 20px 80px;
+    gap: 28px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .demo-controls {
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(184,158,240,0.2);
+    border-radius: 18px;
+    padding: 20px 24px;
+    width: 100%;
+    max-width: 580px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .demo-controls-title {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #9f7aea;
+    margin-bottom: 2px;
+  }
+
+  .demo-btn-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .demo-btn {
+    padding: 8px 16px;
+    border-radius: 99px;
+    border: 1px solid rgba(184,158,240,0.3);
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.8);
+    font-size: 0.78rem;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+
+  .demo-btn:hover { background: rgba(139,92,246,0.25); border-color: #8b5cf6; color: #fff; }
+  .demo-btn.active { background: linear-gradient(135deg,#8b5cf6,#5b21b6); border-color: transparent; color: #fff; }
+
+  #insights-panel { width: 100%; max-width: 580px; }
+</style>
+</head>
+<body>
+
+  <div class="demo-controls">
+    <div class="demo-controls-title">Demo Scenarios</div>
+    <div class="demo-btn-row">
+      <button class="demo-btn active" onclick="loadScenario('high')">⚠️ High Irregularity</button>
+      <button class="demo-btn" onclick="loadScenario('moderate')">◎ Moderate</button>
+      <button class="demo-btn" onclick="loadScenario('stable')">✦ Stable</button>
+      <button class="demo-btn" onclick="loadScenario('sparse')">📋 Sparse Data</button>
+    </div>
+  </div>
+
+  <div id="insights-panel"></div>
+
+  <script src="healthInsights.js"></script>
+  <script>
+    // ── Mock data sets ────────────────────────────────────────────────────────
+
+    const SCENARIOS = {
+
+      high: {
+        variability: {
+          classification: "High Irregularity",
+          cv: 34.2,
+          mean: 38.5,
+          stdDev: 13.2,
+          count: 3,
+        },
+        entries: buildEntries(21, {
+          symptoms:  ["cramps","fatigue","insomnia","anxiety","hairloss","bloating"],
+          painRange: [5, 9],
+          moods:     ["low","anxious","irritable"],
+          energyRange: [1, 2],
+          bleedingMix: { none:2, light:3, medium:5, heavy:4 },
+        }),
+      },
+
+      moderate: {
+        variability: {
+          classification: "Moderate",
+          cv: 14.8,
+          mean: 33.2,
+          stdDev: 4.9,
+          count: 4,
+        },
+        entries: buildEntries(18, {
+          symptoms:  ["bloating","cravings","headache","fatigue"],
+          painRange: [3, 6],
+          moods:     ["neutral","good","low","anxious"],
+          energyRange: [2, 3],
+          bleedingMix: { none:5, light:6, medium:4, heavy:1 },
+        }),
+      },
+
+      stable: {
+        variability: {
+          classification: "Stable",
+          cv: 4.1,
+          mean: 28.8,
+          stdDev: 1.2,
+          count: 5,
+        },
+        entries: buildEntries(20, {
+          symptoms:  ["cramps","bloating"],
+          painRange: [1, 4],
+          moods:     ["good","great","neutral"],
+          energyRange: [4, 5],
+          bleedingMix: { none:8, light:7, medium:3, heavy:0 },
+        }),
+      },
+
+      sparse: {
+        variability: null,
+        entries: buildEntries(4, {
+          symptoms:  ["cramps","fatigue"],
+          painRange: [2, 5],
+          moods:     ["neutral","good"],
+          energyRange: [3, 4],
+          bleedingMix: { none:2, light:1, medium:1, heavy:0 },
+        }),
+      },
+    };
+
+    // ── Build mock entries ────────────────────────────────────────────────────
+    function buildEntries(count, opts) {
+      const entries = [];
+      const today   = new Date();
+      const bleeding = [];
+
+      Object.entries(opts.bleedingMix).forEach(([type, n]) => {
+        for (let i = 0; i < n; i++) bleeding.push(type);
+      });
+
+      for (let i = 0; i < count; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const iso = d.toISOString().slice(0, 10);
+
+        // Randomly pick subset of symptoms
+        const sym = opts.symptoms.filter(() => Math.random() > 0.4);
+
+        entries.push({
+          id:        `mock-${i}`,
+          date:      iso,
+          timestamp: d.getTime(),
+          pain:      randInt(opts.painRange[0], opts.painRange[1]),
+          mood:      pick(opts.moods),
+          symptoms:  sym,
+          energy:    randInt(opts.energyRange[0], opts.energyRange[1]),
+          bleeding:  pick(bleeding),
+          notes:     "",
+        });
+      }
+      return entries;
+    }
+
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function pick(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    // ── Load scenario ─────────────────────────────────────────────────────────
+    function loadScenario(name) {
+      document.querySelectorAll(".demo-btn").forEach(b => b.classList.remove("active"));
+      event.target.classList.add("active");
+
+      const { variability, entries } = SCENARIOS[name];
+      const insights = HealthInsights.generate(variability, entries, {
+        maxInsights: 5,
+        maxPerCategory: 2,
+      });
+
+      HealthInsights.render(document.getElementById("insights-panel"), insights);
+    }
+
+    // Initial load
+    const initInsights = HealthInsights.generate(
+      SCENARIOS.high.variability,
+      SCENARIOS.high.entries,
+      { maxInsights: 5 }
+    );
+    HealthInsights.render(document.getElementById("insights-panel"), initInsights);
+  </script>
+</body>
+</html>

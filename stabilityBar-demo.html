@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stability Bar Demo</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse at 20% 10%, #6d28d9 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 90%, #4c1d95 0%, transparent 50%),
+      linear-gradient(160deg, #2d1b69, #1a0f3c);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 40px 20px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  h1 {
+    font-family: serif;
+    font-weight: 300;
+    font-size: 1.6rem;
+    color: rgba(255,255,255,0.8);
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+
+  .bars-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  button {
+    padding: 9px 20px;
+    border-radius: 99px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.85);
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+  }
+  button:hover { background: rgba(255,255,255,0.18); }
+
+  label {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: center;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  input[type=range] {
+    width: 100%;
+    accent-color: #8b5cf6;
+  }
+
+  .slider-wrap {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+</style>
+</head>
+<body>
+
+  <h1>Stability Bar Demo</h1>
+
+  <div class="bars-grid">
+    <div id="bar-stable"></div>
+    <div id="bar-moderate"></div>
+    <div id="bar-high"></div>
+  </div>
+
+  <div class="slider-wrap">
+    <label>Live numeric score</label>
+    <input type="range" id="score-slider" min="0" max="100" value="68"/>
+    <div id="bar-numeric"></div>
+  </div>
+
+  <div class="controls">
+    <button onclick="StabilityBar.render(document.getElementById('bar-stable'),   'Stable')">Reset Stable</button>
+    <button onclick="StabilityBar.render(document.getElementById('bar-moderate'), 'Moderate')">Reset Moderate</button>
+    <button onclick="StabilityBar.render(document.getElementById('bar-high'),     'High Irregularity')">Reset High</button>
+  </div>
+
+  <script src="stabilityBar.js"></script>
+  <script>
+    // Render three classification examples
+    StabilityBar.render(document.getElementById("bar-stable"), "Stable", {
+      meta: { "Avg Cycle": "29d", "StdDev": "1.2" }
+    });
+
+    StabilityBar.render(document.getElementById("bar-moderate"), "Moderate", {
+      label: "Cycle Stability",
+      meta: { "Avg Cycle": "33d", "StdDev": "4.1" }
+    });
+
+    StabilityBar.render(document.getElementById("bar-high"), "High Irregularity", {
+      meta: { "Avg Cycle": "38d", "StdDev": "11.8" }
+    });
+
+    // Render numeric score bar, wired to slider
+    const slider   = document.getElementById("score-slider");
+    const numericEl = document.getElementById("bar-numeric");
+
+    function updateNumeric() {
+      StabilityBar.render(numericEl, Number(slider.value), {
+        label: `Score: ${slider.value}`,
+      });
+    }
+
+    slider.addEventListener("input", updateNumeric);
+    updateNumeric(); // initial render
+  </script>
+</body>
+</html>
