@@ -7,7 +7,7 @@ Member 1: Gowri Padmakumar – St. Joseph's College (Autonomous), Devagiri
 Member 2: Gowri Laxmi – St. Joseph's College (Autonomous), Devagiri
 
 🌐 Hosted Project Link
-file:///D:/college/coding/glitch/glitch%20trial%206/pcos-tracker.html
+https://glitchwebsite-one.vercel.app/
 
 📝 Project Description
 Glitch is a web-based hormonal health companion designed specifically for individuals with PCOS. Unlike traditional period trackers that assume regular 28-day cycles, our system detects irregularity patterns, calculates cycle variability, and generates intelligent insights based on user data.
